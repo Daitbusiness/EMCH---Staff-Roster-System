@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareSync - Staff Roster System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="firebase-status connected" id="firebaseStatus">
+        <span class="status-indicator"></span>
+        <span>Connected to Firebase</span>
+    </div>
+
+    <!-- Login Section -->
+    <div class="login-container" id="loginContainer">
+        <div class="test-account-badge">Test Account Active</div>
+        
+        <div class="login-logo">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <h1>CareSync Roster System</h1>
+        <p class="login-subtitle">Efficient staff scheduling for care homes</p>
+        
+        <div class="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" placeholder="Enter username" value="ilovenz@outlook.co.nz">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" placeholder="Enter password" value="123456">
+            </div>
+            <button class="login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </div>
+        
+        <div class="default-creds">
+            <h3><i class="fas fa-info-circle"></i> Test Account Credentials</h3>
+            <p><strong>Full Access Account:</strong> ilovenz@outlook.co.nz / 123456</p>
+            <p><strong>UID:</strong> PpsniXFJqYXeYE1txnu049rH54t1</p>
+            <p><strong>Role:</strong> Administrator (Full permissions)</p>
+        </div>
+    </div>
+    
+    <!-- Main Application -->
+    <div class="container" id="mainContainer">
+        <header>
+            <div class="app-header">
+                <div class="app-logo">CS</div>
+                <div class="app-title">
+                    <h1>Edmonton Meadows Care Home</h1>
+                    <p>Staff Roster Management System</p>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="avatar">T</div>
+                <div>
+                    <div id="currentUser">Test Administrator</div>
+                    <div id="userRole">Administrator</div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+        
+        <div class="app-nav">
+            <div class="nav-item active" data-target="dashboard">
+                <i class="fas fa-calendar-alt"></i> Roster
+            </div>
+            <div class="nav-item" data-target="requests">
+                <i class="fas fa-exchange-alt"></i> Shift Swap
+            </div>
+            <div class="nav-item" data-target="stats">
+                <i class="fas fa-chart-bar"></i> Reports
+            </div>
+            <div class="nav-item" data-target="staff">
+                <i class="fas fa-users"></i> Staff
+            </div>
+        </div>
+        
+        <!-- Dashboard/Roster -->
+        <div class="content-section active" id="dashboard">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-calendar-week"></i> Staff Roster
+                </div>
+                
+                <div class="dashboard-controls">
+                    <div class="week-selector">
+                        <i class="fas fa-calendar-week"></i>
+                        <select id="weekSelector">
+                            <option>Week 1: May 31 - Jun 6</option>
+                            <option>Week 2: Jun 7 - Jun 13</option>
+                        </select>
+                    </div>
+                    <button class="control-btn btn-primary" id="saveBtn">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button class="control-btn btn-secondary" id="printBtn">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="control-btn btn-warning" id="resetBtn">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <div class="roster-container">
+                <div class="roster-header">
+                    <div>Role</div>
+                    <div>Hours</div>
+                    <div>Sat 5/31</div>
+                    <div>Sun 6/1</div>
+                    <div>Mon 6/2</div>
+                    <div>Tue 6/3</div>
+                    <div>Wed 6/4</div>
+                    <div>Thu 6/5</div>
+                    <div>Fri 6/6</div>
+                </div>
+                
+                <div class="roster-body" id="rosterBody">
+                    <!-- Roster rows will be generated here -->
+                </div>
+            </div>
+            
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-chart-pie"></i> Weekly Summary
+                </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <h3>Staff Roster</h3>
+                            <p>This week statistics</p>
+                        </div>
+                        <div class="stat-icon icon-primary">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalShifts">124 Shifts</h3>
+                        <p id="totalHours">892 Hours</p>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i> 8% increase from last week
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <h3>Staff Distribution</h3>
+                            <p>By role</p>
+                        </div>
+                        <div class="stat-icon icon-success">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalStaff">32 Staff</h3>
+                        <p>5 role categories</p>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-check-circle"></i> Adequate staffing
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <h3>Pending Requests</h3>
+                            <p>Requires your attention</p>
+                        </div>
+                        <div class="stat-icon icon-warning">
+                            <i class="fas fa-exclamation"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="pendingRequests">4 Requests</h3>
+                        <p>3 shift swaps</p>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-clock"></i> Needs timely action
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shift Swap -->
+        <div class="content-section" id="requests">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-exchange-alt"></i> Shift Swap Management
+                </div>
+            </div>
+            
+            <div class="request-card">
+                <h3><i class="fas fa-paper-plane"></i> Create New Request</h3>
+                <div class="request-grid">
+                    <div class="request-item">
+                        <div class="request-header">
+                            <div>Your Request</div>
+                        </div>
+                        <div class="request-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Select Shift:</div>
+                                <div class="detail-value">
+                                    <select id="shiftSelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                                        <option value="">-- Select your shift --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Swap With:</div>
+                                <div class="detail-value">
+                                    <select id="staffSelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                                        <option value="">-- Select staff member --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Reason:</div>
+                                <div class="detail-value">
+                                    <textarea id="reasonInput" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; height:80px;" placeholder="Enter reason..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="action-btn btn-accept" id="submitRequestBtn">
+                                <i class="fas fa-paper-plane"></i> Submit Request
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="request-item">
+                        <div class="request-header">
+                            <div>Pending Requests</div>
+                            <div class="request-status status-pending">Pending</div>
+                        </div>
+                        <div class="request-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Your Shift:</div>
+                                <div class="detail-value">Mon 6/2 - HCA 1 (7am-3pm)</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Swap With:</div>
+                                <div class="detail-value">Sharon (HCA 2)</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Swap Shift:</div>
+                                <div class="detail-value">Tue 6/3 - HCA 2 (7am-2pm)</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Status:</div>
+                                <div class="detail-value">Waiting for Sharon</div>
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="action-btn btn-reject">
+                                <i class="fas fa-times"></i> Cancel Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="request-card">
+                <h3><i class="fas fa-inbox"></i> Received Requests</h3>
+                <div class="request-grid" id="receivedRequests">
+                    <!-- Received requests will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports -->
+        <div class="content-section" id="stats">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-chart-bar"></i> Reports & Analytics
+                </div>
+                <div class="dashboard-controls">
+                    <div class="week-selector">
+                        <i class="fas fa-calendar-week"></i>
+                        <select id="reportPeriod">
+                            <option>Last 7 days</option>
+                            <option>Last 30 days</option>
+                            <option>June 2025</option>
+                        </select>
+                    </div>
+                    <button class="control-btn btn-primary" id="exportBtn">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <h3>Hours Report</h3>
+                            <p>By staff member</p>
+                        </div>
+                        <div class="stat-icon icon-primary">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div id="hoursChart" style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--gray);">
+                            <i class="fas fa-chart-bar" style="font-size: 48px; opacity: 0.3;"></i>
+                            <p>Hours distribution chart</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <h3>Shift Distribution</h3>
+                            <p>By role</p>
+                        </div>
+                        <div class="stat-icon icon-success">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div id="roleChart" style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--gray);">
+                            <i class="fas fa-chart-pie" style="font-size: 48px; opacity: 0.3;"></i>
+                            <p>Role distribution chart</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="roster-container" style="margin-top: 20px;">
+                <div class="roster-header">
+                    <div>Staff Name</div>
+                    <div>Total Shifts</div>
+                    <div>Total Hours</div>
+                    <div>Morning</div>
+                    <div>Day</div>
+                    <div>Evening</div>
+                    <div>Night</div>
+                    <div>Overtime</div>
+                    <div>Attendance</div>
+                </div>
+                
+                <div class="roster-body" id="reportBody">
+                    <!-- Report rows will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Staff Management -->
+        <div class="content-section" id="staff">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-users"></i> Staff Management
+                </div>
+                <div class="dashboard-controls">
+                    <button class="control-btn btn-primary" id="addStaffBtn">
+                        <i class="fas fa-plus"></i> Add Staff
+                    </button>
+                    <button class="control-btn btn-secondary" id="exportStaffBtn">
+                        <i class="fas fa-file-export"></i> Export Data
+                    </button>
+                </div>
+            </div>
+            
+            <div class="roster-container">
+                <div class="roster-header">
+                    <div>Staff Name</div>
+                    <div>Role</div>
+                    <div>Contact</div>
+                    <div>Start Date</div>
+                    <div>Status</div>
+                    <div>This Week</div>
+                    <div>Total Hours</div>
+                    <div>Actions</div>
+                </div>
+                
+                <div class="roster-body" id="staffBody">
+                    <!-- Staff rows will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon icon-success">
+            <i class="fas fa-check"></i>
+        </div>
+        <div>
+            <div class="notification-title">Changes Saved</div>
+            <div class="notification-text">Roster updated successfully</div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
